@@ -1,0 +1,328 @@
+<Window x:Class="Kite.App.Views.LauncherWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Kite"
+        Width="720"
+        SizeToContent="Height"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        ShowActivated="True"
+        Topmost="True"
+        UseLayoutRounding="True"
+        FontFamily="{StaticResource UiFont}"
+        AutomationProperties.Name="Kite launcher">
+
+    <!-- the outer margin leaves room for the soft shadow -->
+    <Grid x:Name="Root" Margin="20,12,20,28">
+        <Grid.RenderTransform>
+            <TranslateTransform x:Name="RootOffset" />
+        </Grid.RenderTransform>
+
+        <!-- shadow layer, kept separate so text stays crisp -->
+        <Border Background="{DynamicResource CardBrush}" CornerRadius="16">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="30"
+                                  Direction="270"
+                                  Opacity="0.42"
+                                  ShadowDepth="8"
+                                  Color="{DynamicResource ShadowColor}" />
+            </Border.Effect>
+        </Border>
+
+        <Border Background="{DynamicResource CardBrush}"
+                BorderBrush="{DynamicResource CardBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="16"
+                ClipToBounds="False">
+            <StackPanel>
+
+                <!-- search row -->
+                <Grid Margin="20,14,14,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                               Margin="0,1,14,0"
+                               VerticalAlignment="Center"
+                               FontFamily="{StaticResource IconFont}"
+                               FontSize="18"
+                               Foreground="{DynamicResource AccentBrush}"
+                               Text="&#xE721;" />
+
+                    <Grid Grid.Column="1">
+                        <TextBlock x:Name="Placeholder"
+                                   Margin="2,0,0,0"
+                                   VerticalAlignment="Center"
+                                   FontFamily="{StaticResource DisplayFont}"
+                                   FontSize="21"
+                                   Foreground="{DynamicResource PlaceholderBrush}"
+                                   IsHitTestVisible="False"
+                                   Text="Search apps, do math, or type g to search Google"
+                                   TextTrimming="CharacterEllipsis"
+                                   Visibility="Collapsed" />
+                        <TextBox x:Name="SearchBox"
+                                 Style="{StaticResource SearchBoxStyle}"
+                                 Text="{Binding QueryText, UpdateSourceTrigger=PropertyChanged}"
+                                 AutomationProperties.Name="Search"
+                                 AutomationProperties.HelpText="Type to search. Use the up and down arrow keys to choose a result, Enter to open it and Escape to close." />
+                    </Grid>
+
+                    <Button x:Name="SettingsButton"
+                            Grid.Column="2"
+                            Margin="8,0,0,0"
+                            Style="{StaticResource GhostButtonStyle}"
+                            Click="OnSettingsClick"
+                            ToolTip="Settings"
+                            AutomationProperties.Name="Open settings">
+                        <TextBlock FontFamily="{StaticResource IconFont}" FontSize="15" Text="&#xE713;" />
+                    </Button>
+                </Grid>
+
+                <!-- thin bar that moves while a search is running -->
+                <Grid x:Name="BusyTrack"
+                      Height="2"
+                      ClipToBounds="True"
+                      Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}">
+                    <Rectangle x:Name="BusyBar"
+                               Width="160"
+                               HorizontalAlignment="Left"
+                               Fill="{DynamicResource AccentBrush}"
+                               RadiusX="1"
+                               RadiusY="1">
+                        <Rectangle.RenderTransform>
+                            <TranslateTransform x:Name="BusyBarOffset" />
+                        </Rectangle.RenderTransform>
+                    </Rectangle>
+                </Grid>
+
+                <Border Height="1" Background="{DynamicResource DividerBrush}" />
+
+                <!-- error banner -->
+                <Border Margin="12,10,12,0"
+                        Padding="12,8"
+                        Background="{DynamicResource ErrorBackgroundBrush}"
+                        CornerRadius="8"
+                        Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Margin="0,1,10,0"
+                                   FontFamily="{StaticResource IconFont}"
+                                   Foreground="{DynamicResource ErrorTextBrush}"
+                                   Text="&#xE7BA;" />
+                        <TextBlock x:Name="ErrorText"
+                                   Grid.Column="1"
+                                   Foreground="{DynamicResource ErrorTextBrush}"
+                                   Text="{Binding ErrorMessage}"
+                                   TextWrapping="Wrap"
+                                   AutomationProperties.LiveSetting="Assertive" />
+                    </Grid>
+                </Border>
+
+                <!-- results -->
+                <ListBox x:Name="ResultsList"
+                         MaxHeight="480"
+                         Margin="0,6,0,6"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Focusable="False"
+                         IsTabStop="False"
+                         ItemContainerStyle="{StaticResource ResultItemStyle}"
+                         ItemsSource="{Binding Results}"
+                         SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         VirtualizingPanel.IsVirtualizing="False"
+                         PreviewMouseLeftButtonUp="OnResultClicked"
+                         Visibility="{Binding ShowResults, Converter={StaticResource BoolToVisibility}}"
+                         AutomationProperties.Name="Results">
+                    <ListBox.Resources>
+                        <Style TargetType="ScrollBar" BasedOn="{StaticResource SlimScrollBarStyle}" />
+                    </ListBox.Resources>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Height="54">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Width="36"
+                                        Height="36"
+                                        Margin="2,0,14,0"
+                                        Background="{DynamicResource IconTileBrush}"
+                                        CornerRadius="9">
+                                    <Grid>
+                                        <TextBlock x:Name="GlyphText"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   FontFamily="{StaticResource IconFont}"
+                                                   FontSize="17"
+                                                   Foreground="{DynamicResource IconGlyphBrush}"
+                                                   Text="{Binding Glyph}" />
+                                        <Image Width="26"
+                                               Height="26"
+                                               RenderOptions.BitmapScalingMode="HighQuality"
+                                               Source="{Binding Icon}"
+                                               Visibility="{Binding HasIcon, Converter={StaticResource BoolToVisibility}}" />
+                                    </Grid>
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock FontSize="14.5"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextBrush}"
+                                               Text="{Binding Title}"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Margin="0,2,0,0"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource SubtleTextBrush}"
+                                               Text="{Binding Subtitle}"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+
+                                <!-- the enter hint only shows on the selected row -->
+                                <StackPanel x:Name="EnterHint"
+                                            Grid.Column="2"
+                                            Margin="12,0,4,0"
+                                            Orientation="Horizontal"
+                                            Visibility="Collapsed">
+                                    <TextBlock Margin="0,0,8,0"
+                                               VerticalAlignment="Center"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource SubtleTextBrush}"
+                                               Text="{Binding ActionLabel}" />
+                                    <Border Style="{StaticResource KeyCapStyle}" Margin="0">
+                                        <TextBlock Style="{StaticResource KeyCapTextStyle}" Text="Enter" />
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+                            <DataTemplate.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True" />
+                                        <Condition Binding="{Binding HasAction}" Value="True" />
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter TargetName="EnterHint" Property="Visibility" Value="Visible" />
+                                </MultiDataTrigger>
+                                <DataTrigger Binding="{Binding IsWarning}" Value="True">
+                                    <Setter TargetName="GlyphText" Property="Foreground" Value="{DynamicResource ErrorTextBrush}" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- tips shown before anything is typed -->
+                <StackPanel Margin="22,16,22,14"
+                            Visibility="{Binding ShowTips, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Margin="0,0,0,10"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource FaintTextBrush}"
+                               Text="TRY" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0" Style="{StaticResource KeyCapStyle}" Margin="0,0,12,8">
+                            <TextBlock Style="{StaticResource KeyCapTextStyle}" Text="notepad" />
+                        </Border>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Margin="0,0,0,8" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}" Text="Open an app, even with a typo" />
+                        <Border Grid.Row="1" Style="{StaticResource KeyCapStyle}" Margin="0,0,12,8">
+                            <TextBlock Style="{StaticResource KeyCapTextStyle}" Text="(120 + 30) / 5" />
+                        </Border>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,0,0,8" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}" Text="Calculate, then press Enter to copy" />
+                        <Border Grid.Row="2" Style="{StaticResource KeyCapStyle}" Margin="0,0,12,8">
+                            <TextBlock Style="{StaticResource KeyCapTextStyle}" Text="gh wpf launcher" />
+                        </Border>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Margin="0,0,0,8" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}" Text="Search the web with g, gh, ddg, yt or w" />
+                        <Border Grid.Row="3" Style="{StaticResource KeyCapStyle}" Margin="0,0,12,0">
+                            <TextBlock Style="{StaticResource KeyCapTextStyle}" Text="kite" />
+                        </Border>
+                        <TextBlock Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}" Text="Open Kite settings to add bookmarks and aliases" />
+                    </Grid>
+                </StackPanel>
+
+                <!-- loading -->
+                <StackPanel Margin="22,22"
+                            Orientation="Horizontal"
+                            Visibility="{Binding ShowLoading, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Margin="0,0,10,0"
+                               FontFamily="{StaticResource IconFont}"
+                               Foreground="{DynamicResource AccentBrush}"
+                               Text="&#xE895;" />
+                    <TextBlock Foreground="{DynamicResource SubtleTextBrush}"
+                               Text="Looking for your apps. This only takes a moment the first time."
+                               AutomationProperties.LiveSetting="Polite" />
+                </StackPanel>
+
+                <!-- nothing found -->
+                <StackPanel Margin="22,22"
+                            Visibility="{Binding ShowNoResults, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextBrush}"
+                               Text="No matches"
+                               AutomationProperties.LiveSetting="Polite" />
+                    <TextBlock Margin="0,4,0,0"
+                               Foreground="{DynamicResource SubtleTextBrush}"
+                               Text="Check the spelling, or add a bookmark or alias in settings."
+                               TextWrapping="Wrap" />
+                </StackPanel>
+
+                <!-- footer with keyboard hints -->
+                <Border Padding="18,9"
+                        Background="{DynamicResource FooterBrush}"
+                        CornerRadius="0,0,15,15">
+                    <DockPanel LastChildFill="False">
+                        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                            <Border Style="{StaticResource KeyCapStyle}">
+                                <TextBlock Style="{StaticResource KeyCapTextStyle}" Text="&#x2191; &#x2193;" />
+                            </Border>
+                            <TextBlock Style="{StaticResource FooterTextStyle}" Text="Navigate" />
+                            <Border Style="{StaticResource KeyCapStyle}">
+                                <TextBlock Style="{StaticResource KeyCapTextStyle}" Text="Enter" />
+                            </Border>
+                            <TextBlock Style="{StaticResource FooterTextStyle}" Text="Open" />
+                            <Border Style="{StaticResource KeyCapStyle}">
+                                <TextBlock Style="{StaticResource KeyCapTextStyle}" Text="Esc" />
+                            </Border>
+                            <TextBlock Style="{StaticResource FooterTextStyle}" Text="Close" />
+                        </StackPanel>
+                        <TextBlock DockPanel.Dock="Right"
+                                   Margin="0"
+                                   Style="{StaticResource FooterTextStyle}"
+                                   Text="{Binding AppStatus}" />
+                    </DockPanel>
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <!-- read out by screen readers when the highlighted result changes -->
+        <TextBlock x:Name="Announcer"
+                   Width="1"
+                   Height="1"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top"
+                   Opacity="0"
+                   IsHitTestVisible="False"
+                   AutomationProperties.LiveSetting="Assertive" />
+    </Grid>
+</Window>

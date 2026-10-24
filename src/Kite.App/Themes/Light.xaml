@@ -1,0 +1,25 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- light colours for the launcher -->
+    <SolidColorBrush x:Key="CardBrush" Color="#FCFCFE" />
+    <SolidColorBrush x:Key="CardBorderBrush" Color="#DFE0E8" />
+    <SolidColorBrush x:Key="TextBrush" Color="#1A1B22" />
+    <SolidColorBrush x:Key="SubtleTextBrush" Color="#5F6271" />
+    <SolidColorBrush x:Key="FaintTextBrush" Color="#8C8F9C" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#5A48E8" />
+    <SolidColorBrush x:Key="AccentTextBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SelectionBrush" Color="#ECEAFE" />
+    <SolidColorBrush x:Key="HoverBrush" Color="#F3F3F8" />
+    <SolidColorBrush x:Key="IconTileBrush" Color="#EEEEF4" />
+    <SolidColorBrush x:Key="FooterBrush" Color="#F5F5F9" />
+    <SolidColorBrush x:Key="DividerBrush" Color="#E7E7EE" />
+    <SolidColorBrush x:Key="ErrorBackgroundBrush" Color="#FDECEC" />
+    <SolidColorBrush x:Key="ErrorTextBrush" Color="#B42318" />
+    <SolidColorBrush x:Key="KeyCapBrush" Color="#F1F1F6" />
+    <SolidColorBrush x:Key="KeyCapBorderBrush" Color="#D8D9E2" />
+    <SolidColorBrush x:Key="PlaceholderBrush" Color="#8C8F9C" />
+    <SolidColorBrush x:Key="CaretBrush" Color="#5A48E8" />
+    <Color x:Key="ShadowColor">#3C3F55</Color>
+    <SolidColorBrush x:Key="IconGlyphBrush" Color="#5A48E8" />
+</ResourceDictionary>

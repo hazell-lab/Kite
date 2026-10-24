@@ -1,0 +1,273 @@
+<Window x:Class="Kite.App.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Kite settings"
+        Width="780"
+        Height="660"
+        MinWidth="620"
+        MinHeight="480"
+        WindowStartupLocation="CenterScreen"
+        Icon="/Assets/kite.png"
+        AutomationProperties.Name="Kite settings">
+
+    <Grid Margin="20,14,20,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="4,0,0,12" Orientation="Horizontal">
+            <Image Width="28" Height="28" Margin="0,0,12,0" Source="/Assets/kite.png" />
+            <TextBlock VerticalAlignment="Center" FontSize="22" FontWeight="SemiBold" Text="Kite settings" />
+        </StackPanel>
+
+        <TabControl Grid.Row="1" x:Name="Tabs">
+
+            <!-- general settings -->
+            <TabItem Header="General">
+                <ScrollViewer Padding="4,0,12,12" VerticalScrollBarVisibility="Auto">
+                    <StackPanel MaxWidth="640" HorizontalAlignment="Left">
+
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="Keyboard shortcut" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="HotkeyBox"
+                                     IsReadOnlyCaretVisible="False"
+                                     IsUndoEnabled="False"
+                                     PreviewKeyDown="OnHotkeyBoxKeyDown"
+                                     GotKeyboardFocus="OnHotkeyBoxGotFocus"
+                                     LostKeyboardFocus="OnHotkeyBoxLostFocus"
+                                     AutomationProperties.Name="Shortcut to open Kite"
+                                     AutomationProperties.HelpText="Focus this box and press the keys you want to use." />
+                            <Button x:Name="ApplyHotkeyButton" Grid.Column="1" Margin="8,0,0,0" Padding="16,6" Click="OnApplyHotkey" Content="Apply" />
+                            <Button Grid.Column="2" Margin="8,0,0,0" Padding="12,6" Click="OnResetHotkey" Content="Reset to Alt+Space" />
+                        </Grid>
+                        <TextBlock Style="{StaticResource HintTextStyle}" Text="Click the box, press the keys you want, then choose Apply. You need at least one of Ctrl, Alt, Shift or Win." />
+                        <TextBlock x:Name="HotkeyStatus" AutomationProperties.LiveSetting="Polite" />
+
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="Appearance" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Label Grid.Row="0" VerticalAlignment="Center" Content="_Theme" Target="{Binding ElementName=ThemeBox}" />
+                            <ComboBox x:Name="ThemeBox" Grid.Row="0" Grid.Column="1" SelectionChanged="OnGeneralSelectionChanged" AutomationProperties.Name="Theme">
+                                <ComboBoxItem Content="Dark" Tag="Dark" />
+                                <ComboBoxItem Content="Light" Tag="Light" />
+                                <ComboBoxItem Content="Match Windows" Tag="System" />
+                            </ComboBox>
+                            <Label Grid.Row="1" Margin="0,10,0,0" VerticalAlignment="Center" Content="_Monitor" Target="{Binding ElementName=MonitorBox}" />
+                            <ComboBox x:Name="MonitorBox"
+                                      Grid.Row="1"
+                                      Grid.Column="1"
+                                      Margin="0,10,0,0"
+                                      DisplayMemberPath="Label"
+                                      SelectedValuePath="Value"
+                                      SelectionChanged="OnGeneralSelectionChanged"
+                                      AutomationProperties.Name="Monitor for the launcher" />
+                        </Grid>
+                        <CheckBox x:Name="AnimationsBox" Margin="0,12,0,0" Click="OnGeneralChanged" Content="Use animations" />
+                        <TextBlock Style="{StaticResource HintTextStyle}" Text="Animations also stay off when animation effects are turned off in Windows settings." />
+
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="Results" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="40" />
+                            </Grid.ColumnDefinitions>
+                            <Label VerticalAlignment="Center" Content="_Results to show" Target="{Binding ElementName=ResultCountSlider}" />
+                            <Slider x:Name="ResultCountSlider"
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    IsSnapToTickEnabled="True"
+                                    Maximum="20"
+                                    Minimum="3"
+                                    TickFrequency="1"
+                                    ValueChanged="OnResultCountChanged"
+                                    AutomationProperties.Name="Number of results to show" />
+                            <TextBlock x:Name="ResultCountText" Grid.Column="2" Margin="10,0,0,0" VerticalAlignment="Center" />
+                        </Grid>
+                        <CheckBox x:Name="HistoryBox" Margin="0,12,0,0" Click="OnGeneralChanged" Content="Remember what I open, to rank results better" />
+                        <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                            <Button Padding="12,6" Click="OnClearHistory" Content="Clear launch history" />
+                            <TextBlock x:Name="HistoryStatus" Margin="12,0,0,0" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
+                        </StackPanel>
+
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="Startup" />
+                        <CheckBox x:Name="StartWithWindowsBox" Click="OnGeneralChanged" Content="Start Kite when I sign in to Windows" />
+                        <CheckBox x:Name="ShowOnStartBox" Margin="0,8,0,0" Click="OnGeneralChanged" Content="Open the launcher when Kite starts" />
+                        <TextBlock x:Name="StartupStatus" Style="{StaticResource ErrorTextStyle}" Visibility="Collapsed" />
+
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="Apps" />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="AppCountText" VerticalAlignment="Center" />
+                            <Button Margin="12,0,0,0" Padding="12,6" Click="OnReloadApps" Content="Reload app list" />
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource HintTextStyle}"
+                                   Text="Kite reads Start menu shortcuts and the Windows apps folder, which includes Microsoft Store apps. A few store apps do not list themselves there and cannot be found. Some packaged apps may show a plain symbol instead of their icon." />
+
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="Your data" />
+                        <TextBlock x:Name="DataFolderText" TextWrapping="Wrap" />
+                        <TextBlock Style="{StaticResource HintTextStyle}" Text="Settings, bookmarks, aliases and history are saved here as JSON files. Nothing is sent to the internet." />
+                        <Button Margin="0,10,0,0" Padding="12,6" HorizontalAlignment="Left" Click="OnOpenDataFolder" Content="Open data folder" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- bookmarks -->
+            <TabItem Header="Bookmarks">
+                <Grid Margin="4,12,4,4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ListView x:Name="BookmarkList" SelectionMode="Single" SelectionChanged="OnBookmarkSelected" AutomationProperties.Name="Bookmarks">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Width="200" DisplayMemberBinding="{Binding Name}" Header="Name" />
+                                <GridViewColumn Width="400" DisplayMemberBinding="{Binding Url}" Header="Address" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    <StackPanel Grid.Row="1" Margin="0,12,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Label VerticalAlignment="Center" Content="_Name" Target="{Binding ElementName=BookmarkNameBox}" />
+                            <TextBox x:Name="BookmarkNameBox" Grid.Column="1" AutomationProperties.Name="Bookmark name" />
+                            <Label Grid.Row="1" Margin="0,8,0,0" VerticalAlignment="Center" Content="_Address" Target="{Binding ElementName=BookmarkUrlBox}" />
+                            <TextBox x:Name="BookmarkUrlBox" Grid.Row="1" Grid.Column="1" Margin="0,8,0,0" AutomationProperties.Name="Bookmark address" />
+                        </Grid>
+                        <StackPanel Margin="110,10,0,0" Orientation="Horizontal">
+                            <Button Padding="14,6" Click="OnSaveBookmark" Content="Save" IsDefault="False" />
+                            <Button Margin="8,0,0,0" Padding="14,6" Click="OnNewBookmark" Content="New" />
+                            <Button x:Name="DeleteBookmarkButton" Margin="8,0,0,0" Padding="14,6" Click="OnDeleteBookmark" Content="Delete" />
+                        </StackPanel>
+                        <TextBlock x:Name="BookmarkStatus" Margin="110,6,0,0" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- aliases -->
+            <TabItem Header="Aliases">
+                <Grid Margin="4,12,4,4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Style="{StaticResource HintTextStyle}" Margin="0,0,0,10" Text="An alias is a word you type to open something, for example projects to open your projects folder." />
+                    <ListView x:Name="AliasList" Grid.Row="1" SelectionMode="Single" SelectionChanged="OnAliasSelected" AutomationProperties.Name="Aliases">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Width="140" DisplayMemberBinding="{Binding Keyword}" Header="Alias" />
+                                <GridViewColumn Width="110" DisplayMemberBinding="{Binding Kind}" Header="Type" />
+                                <GridViewColumn Width="360" DisplayMemberBinding="{Binding Target}" Header="Opens" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    <StackPanel Grid.Row="2" Margin="0,12,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Label VerticalAlignment="Center" Content="A_lias" Target="{Binding ElementName=AliasKeywordBox}" />
+                            <TextBox x:Name="AliasKeywordBox" Grid.Column="1" Grid.ColumnSpan="2" AutomationProperties.Name="Alias word" />
+                            <Label Grid.Row="1" Margin="0,8,0,0" VerticalAlignment="Center" Content="_Type" Target="{Binding ElementName=AliasKindBox}" />
+                            <ComboBox x:Name="AliasKindBox" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,8,0,0" AutomationProperties.Name="Alias type" />
+                            <Label Grid.Row="2" Margin="0,8,0,0" VerticalAlignment="Center" Content="_Opens" Target="{Binding ElementName=AliasTargetBox}" />
+                            <TextBox x:Name="AliasTargetBox" Grid.Row="2" Grid.Column="1" Margin="0,8,0,0" AutomationProperties.Name="What the alias opens" />
+                            <Button Grid.Row="2" Grid.Column="2" Margin="8,8,0,0" Padding="12,6" Click="OnBrowseAliasTarget" Content="Browse..." />
+                        </Grid>
+                        <StackPanel Margin="110,10,0,0" Orientation="Horizontal">
+                            <Button Padding="14,6" Click="OnSaveAlias" Content="Save" />
+                            <Button Margin="8,0,0,0" Padding="14,6" Click="OnNewAlias" Content="New" />
+                            <Button Margin="8,0,0,0" Padding="14,6" Click="OnDeleteAlias" Content="Delete" />
+                        </StackPanel>
+                        <TextBlock x:Name="AliasStatus" Margin="110,6,0,0" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- web search engines -->
+            <TabItem Header="Web search">
+                <Grid Margin="4,12,4,4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Style="{StaticResource HintTextStyle}" Margin="0,0,0,10" Text="Type a prefix, a space and your search words, for example g weather. Use {query} in the address where the words should go. Nothing is sent until you open the result." />
+                    <ListView x:Name="EngineList" Grid.Row="1" SelectionMode="Single" SelectionChanged="OnEngineSelected" AutomationProperties.Name="Search engines">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Width="80" DisplayMemberBinding="{Binding Prefix}" Header="Prefix" />
+                                <GridViewColumn Width="140" DisplayMemberBinding="{Binding Name}" Header="Name" />
+                                <GridViewColumn Width="400" DisplayMemberBinding="{Binding UrlTemplate}" Header="Address" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    <StackPanel Grid.Row="2" Margin="0,12,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Label VerticalAlignment="Center" Content="_Prefix" Target="{Binding ElementName=EnginePrefixBox}" />
+                            <TextBox x:Name="EnginePrefixBox" Grid.Column="1" AutomationProperties.Name="Search prefix" />
+                            <Label Grid.Row="1" Margin="0,8,0,0" VerticalAlignment="Center" Content="_Name" Target="{Binding ElementName=EngineNameBox}" />
+                            <TextBox x:Name="EngineNameBox" Grid.Row="1" Grid.Column="1" Margin="0,8,0,0" AutomationProperties.Name="Search engine name" />
+                            <Label Grid.Row="2" Margin="0,8,0,0" VerticalAlignment="Center" Content="_Address" Target="{Binding ElementName=EngineUrlBox}" />
+                            <TextBox x:Name="EngineUrlBox" Grid.Row="2" Grid.Column="1" Margin="0,8,0,0" AutomationProperties.Name="Search address with query placeholder" />
+                            <Label Grid.Row="3" Margin="0,8,0,0" VerticalAlignment="Center" Content="_When nothing matches" Target="{Binding ElementName=FallbackBox}" />
+                            <ComboBox x:Name="FallbackBox"
+                                      Grid.Row="3"
+                                      Grid.Column="1"
+                                      Margin="0,8,0,0"
+                                      DisplayMemberPath="Name"
+                                      SelectedValuePath="Prefix"
+                                      SelectionChanged="OnFallbackChanged"
+                                      AutomationProperties.Name="Search engine used when nothing else matches" />
+                        </Grid>
+                        <StackPanel Margin="140,10,0,0" Orientation="Horizontal">
+                            <Button Padding="14,6" Click="OnSaveEngine" Content="Save" />
+                            <Button Margin="8,0,0,0" Padding="14,6" Click="OnNewEngine" Content="New" />
+                            <Button Margin="8,0,0,0" Padding="14,6" Click="OnDeleteEngine" Content="Delete" />
+                            <Button Margin="8,0,0,0" Padding="14,6" Click="OnResetEngines" Content="Restore defaults" />
+                        </StackPanel>
+                        <TextBlock x:Name="EngineStatus" Margin="140,6,0,0" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
